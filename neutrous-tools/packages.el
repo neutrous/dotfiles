@@ -16,6 +16,8 @@
 (setq neutrous-tools-packages
     '(
       multi-term
+      compile
+      jsx-mode
       ))
 
 (defun neutrous-tools/init-multi-term()
@@ -82,3 +84,38 @@
 If you do not like default setup, modify it, with (KEY . COMMAND) format."
         :type 'alist
         :group 'multi-term)
+
+(defun neutrous-tools/init-compile ()
+  (use-package compile
+    :config
+    (progn
+
+      ;; refrences from prelude
+      
+      ;; Compilation from Emacs
+      (defun prelude-colorize-compilation-buffer ()
+        "Colorize a compilation mode buffer."
+        (interactive)
+        ;; we don't want to mess with child modes such as grep-mode, ack, ag, etc
+        (when (eq major-mode 'compilation-mode)
+          (let ((inhibit-read-only t))
+            (ansi-color-apply-on-region (point-min) (point-max)))))
+
+      (setq compilation-ask-about-save nil  ; Just save before compiling
+            compilation-always-kill t       ; Just kill old compile processes before
+                                        ; starting the new one
+            compilation-scroll-output 'first-error ; Automatically scroll to first
+                                        ; error
+            )
+
+      (add-hook 'compilation-filter-hook #'prelude-colorize-compilation-buffer)
+      )
+    ))
+
+(defun neutrous-tools/init-jsx-mode ()
+  (use-package jsx-mode
+    :config
+    (progn
+      (add-to-list 'auto-mode-alist '("\\.jsx\\'" . jsx-mode))
+      )
+    ))
