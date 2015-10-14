@@ -14,11 +14,13 @@
 ;; List of all packages to install and/or initialize. Built-in packages
 ;; which require an initialization must be listed explicitly in the list.
 (setq neutrous-tools-packages
-    '(
-      multi-term
-      compile
-      jsx-mode
-      ))
+      '(
+        multi-term
+        compile
+        jsx-mode
+        ace-jump-mode
+        web-mode
+        ))
 
 (defun neutrous-tools/init-multi-term()
   (use-package multi-term
@@ -31,7 +33,7 @@
             (let ((bufname (buffer-name elem)))
               (when (or (string-prefix-p "*termi" bufname) (string-prefix-p "*multi" bufname))
                 (setq result (cons (buffer-name elem) result)))))))
-            
+      
       (defun neutrous-tools//terminal-sources (terminals)
         "return a source for terminal selection"
         `((name . "Available Terminals")
@@ -63,27 +65,27 @@
       )))
 
 (defcustom term-bind-key-alist
-        '(
-          ("C-c C-c" . term-interrupt-subjob)
-          ("C-p" . previous-line)
-          ("C-n" . next-line)
-          ("C-s" . isearch-forward)
-          ("C-r" . isearch-backward)
-          ("C-m" . term-send-raw)
-          ("M-f" . term-send-forward-word)
-          ("M-b" . term-send-backward-word)
-          ("M-o" . term-send-backspace)
-          ("M-p" . term-send-up)
-          ("M-n" . term-send-down)
-          ("M-M" . term-send-forward-kill-word)
-          ("M-N" . term-send-backward-kill-word)
-          ("M-r" . term-send-reverse-search-history)
-          ("M-," . term-send-input)
-          ("M-." . comint-dynamic-complete))
-        "The key alist that will need to be bind.
+  '(
+    ("C-c C-c" . term-interrupt-subjob)
+    ("C-p" . previous-line)
+    ("C-n" . next-line)
+    ("C-s" . isearch-forward)
+    ("C-r" . isearch-backward)
+    ("C-m" . term-send-raw)
+    ("M-f" . term-send-forward-word)
+    ("M-b" . term-send-backward-word)
+    ("M-o" . term-send-backspace)
+    ("M-p" . term-send-up)
+    ("M-n" . term-send-down)
+    ("M-M" . term-send-forward-kill-word)
+    ("M-N" . term-send-backward-kill-word)
+    ("M-r" . term-send-reverse-search-history)
+    ("M-," . term-send-input)
+    ("M-." . comint-dynamic-complete))
+  "The key alist that will need to be bind.
 If you do not like default setup, modify it, with (KEY . COMMAND) format."
-        :type 'alist
-        :group 'multi-term)
+  :type 'alist
+  :group 'multi-term)
 
 (defun neutrous-tools/init-compile ()
   (use-package compile
@@ -117,5 +119,73 @@ If you do not like default setup, modify it, with (KEY . COMMAND) format."
     :config
     (progn
       (add-to-list 'auto-mode-alist '("\\.jsx\\'" . jsx-mode))
+      ;; force tern work with jsx-mode
+      (add-hook 'jsx-mode-hook (lambda() (tern-mode t)))
       )
     ))
+
+(defun neutrous-tools/init-ace-jump-mode()
+  (use-package ace-jump-mode
+    :config
+    (progn
+      (define-key evil-normal-state-map "f" 'ace-jump-char-mode))))
+
+(defun neutrous-tools/init-web-mode()
+  (use-package web-mode
+    :config
+    (progn
+      (defconst prettydiff-program "prettydiff")
+
+      (defun neutrous-tools//prettydiff-format-region (program beg end)
+        "By PROGRAM, format each line in the BEG .. END region."
+        (if (executable-find program)
+            (save-excursion
+              (apply 'call-process-region beg end program t
+                     (list t nil) t prettydiff-args))
+          (message (web-beautify-command-not-found-message program))))
+
+      (defun neutrous-tools//prettydiff-format-buffer (program extenstion)
+        "By PROGRAM, format current buffer with EXTENSTION."
+        (if (executable-find program)
+            (neutrous-tools//prettydiff-format-buffer-1 program extenstion)
+          (message (web-beautify-command-not-found-message program))))
+
+      (defun neutrous-tools//prettydiff-format-buffer-1 (program extenstion)
+        "Internal function of `web-beautify-format-buffer'.
+
+By PROGRAM, format current buffer with EXTENSTION."
+        (let* ((tmpfile (make-temp-file "prettydiff-beautify" nil
+                                        (format ".%s" extenstion)))
+               (outputbufname (format "*prettydiff-beautify-%s*" extenstion))
+               (outputbuf (get-buffer-create outputbufname))
+               (args `("mode:beautify" "insize:2" ,(format "source:%s" tmpfile))))
+          (unwind-protect
+              (progn
+                (with-current-buffer outputbuf (erase-buffer))
+                (write-region nil nil tmpfile)
+
+                (if (zerop (apply 'call-process program nil outputbuf nil args))
+                    (let ((p (point)))
+                      (save-excursion
+                        (with-current-buffer (current-buffer)
+                          (erase-buffer)
+                          (insert-buffer-substring outputbuf)))
+                      (goto-char p)
+                      (message "Applied prettydiff-beautify")
+                      (kill-buffer outputbuf))
+                  (message (web-beautify-format-error-message outputbufname))
+                  (display-buffer outputbuf)))
+            (progn
+              (delete-file tmpfile)))))
+
+      (defun neutrous-tools/prettydiff ()
+        "Format region if active, otherwise the current buffer.
+
+Formatting is done according to the prettyidff command if exist."
+        (interactive)
+        (if (use-region-p)
+            (neutrous-tools//prettydiff-format-region
+             prettydiff-program
+             (region-beginning) (region-end))
+          (neutrous-tools//prettydiff-format-buffer prettydiff-program "html")))
+      )))
