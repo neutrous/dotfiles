@@ -1,0 +1,13 @@
+# -*- mode: snippet -*-
+# name: wxk rpc service
+# key: rpcserv
+# --
+// ${1:实体名称}Service $2
+service $1Service {
+  rpc Add($1) returns (entity.LogicResult);
+  rpc Udpate($1) returns (entity.LogicResult);
+  rpc GetByID(entity.StringID) returns ($1);
+  rpc GetAll(entity.Counts) returns ($1List);
+  rpc Delete(entity.RemoveID) returns (entity.LogicResult);
+  rpc DeleteAll(entity.RemoveGroup) returns (entity.Result);
+}$0

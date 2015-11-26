@@ -20,6 +20,8 @@
         jsx-mode
         ace-jump-mode
         gotest
+        mustache-mode
+        protobuf-mode
         ))
 
 (defun neutrous-tools/init-multi-term()
@@ -137,3 +139,10 @@ If you do not like default setup, modify it, with (KEY . COMMAND) format."
       "mta" 'go-test-current-project
       "mtm" 'go-test-current-file
       "mt." 'go-test-current-test)))
+
+(defun neutrous-tools/init-mustache-mode()
+  (use-package mustache-mode))
+
+(defun neutrous-tools/init-protobuf-mode()
+  (use-package protobuf-mode))
+

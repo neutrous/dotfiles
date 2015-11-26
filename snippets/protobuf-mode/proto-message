@@ -1,0 +1,23 @@
+# -*- mode: snippet -*-
+# name: wxk message proto
+# key: mg
+# --
+// ${1:实体名称} ${2:描述信息}
+message $1 {
+
+  extend entity.LogicResult {
+    optional $1 $1 = ${3:protobuf的扩展编号};
+  }
+
+  // ID 唯一编号
+  optional string ID = 1;
+  $0
+}
+
+// $1List $1的实体列表
+message $1List {
+  // Items 实例的列表
+  repeated $1 Items = 1;
+  // Total 表示实际的总数
+  optional int32 Total = 2;
+}
