@@ -1,0 +1,17 @@
+# -*- mode: snippet -*-
+# name: register router
+# key: rr
+# --
+// Register${1:实体类型}Router 注册与${2:实体名称}相关的路由
+func Register$1Router(r martini.Router) {
+	// 增加与$2相关的路由设置
+	r.Group("/v1/$3", func(r martini.Router) {
+		r.Get("/", ${4:模块名}.Get$1s)
+		r.Get("/:id", $4.Get$1)
+		r.Post("/", $4.Add$1)
+		r.Put("/", $4.Update$1)
+		r.Delete("/", $4.Delete$1)
+		r.Delete("/batch", $4.Delete$1s)
+	}, $4.Prepare$1Proxy)
+}
+$0

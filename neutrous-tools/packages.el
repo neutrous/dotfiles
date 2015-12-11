@@ -22,6 +22,7 @@
         gotest
         mustache-mode
         protobuf-mode
+        org-mode
         ))
 
 (defun neutrous-tools/init-multi-term()
@@ -35,7 +36,7 @@
             (let ((bufname (buffer-name elem)))
               (when (or (string-prefix-p "*termi" bufname) (string-prefix-p "*multi" bufname))
                 (setq result (cons (buffer-name elem) result)))))))
-      
+
       (defun neutrous-tools//terminal-sources (terminals)
         "return a source for terminal selection"
         `((name . "Available Terminals")
@@ -49,7 +50,7 @@
         (interactive)
         (helm :sources (list (neutrous-tools//terminal-sources
                               (neutrous-tools//list-terminal-buffers)))))
-      
+
       ;; handy for create a new multi-term buffer
       (evil-leader/set-key
         "om" 'multi-term
@@ -60,6 +61,10 @@
         ;; Prefer to using zsh as the default shell
         (setq multi-term-program "/bin/zsh")
         (setq show-trailing-whitespace nil)
+        ;; see https://github.com/syl20bnr/spacemacs/issues/2775 from color face problem solution.
+        (setq system-uses-terminfo nil)
+        (custom-set-faces
+         '(term ((t (:inherit default)))))
         (add-to-list 'term-bind-key-alist '("M-[" . multi-term-prev))
         (add-to-list 'term-bind-key-alist '("M-]" . multi-term-next)))
 
@@ -145,4 +150,16 @@ If you do not like default setup, modify it, with (KEY . COMMAND) format."
 
 (defun neutrous-tools/init-protobuf-mode()
   (use-package protobuf-mode))
+
+(defun neutrous-tools/init-org-mode()
+  (use-package org-mode
+    :config
+    (progn
+      ;; settings come from http://doc.norang.ca/org-mode.html
+
+      ;; settings for agenda
+      (setq org-agenda-files (quote ("~/git/org"
+                                     "~/git/org/client1"
+                                     "~/git/client2")))
+      )))
 
