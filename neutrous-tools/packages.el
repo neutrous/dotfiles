@@ -23,6 +23,7 @@
         mustache-mode
         protobuf-mode
         org-mode
+        nodejs-repl
         ))
 
 (defun neutrous-tools/init-multi-term()
@@ -150,6 +151,9 @@ If you do not like default setup, modify it, with (KEY . COMMAND) format."
 
 (defun neutrous-tools/init-protobuf-mode()
   (use-package protobuf-mode))
+
+(defun neutrous-tools/init-nodejs-repl()
+  (use-package nodejs-repl))
 
 (defun neutrous-tools/init-org-mode()
   (use-package org-mode
